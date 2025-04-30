@@ -1,0 +1,12 @@
+dss/MeasurementUnit.class
+lipid/Lipid.class
+lipid/LipidScoreUnit.class
+atm/Tries.class
+atm/Operation.class
+atm/OperationUnit.class
+lipid/Annotation.class
+main/Main.class
+adduct/Adduct.class
+lipid/Peak.class
+adduct/AdductList.class
+dss/Measurement.class
