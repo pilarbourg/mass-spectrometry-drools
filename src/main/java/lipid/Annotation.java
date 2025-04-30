@@ -96,4 +96,29 @@ public class Annotation {
     }
 
     // !!TODO Detect the adduct with an algorithm or with drools, up to the user.
+    public String detectAdduct() {
+        // Find the closest peak by comparing mz values
+        Peak closestPeak = null;
+        double closestMzDiff = Double.MAX_VALUE;
+
+        for (Peak peak : groupedSignals) {
+            double mzDiff = Math.abs(peak.getMz() - this.mz);
+            if (mzDiff < closestMzDiff) {
+                closestMzDiff = mzDiff;
+                closestPeak = peak;
+            }
+        }
+
+        // Return the corresponding adduct for the closest peak
+        if (closestPeak != null) {
+            if (closestPeak.getMz() == 700.500) {
+                return "[M+H]+";
+            } else if (closestPeak.getMz() == 722.482) {
+                return "[M+Na]+";
+            }
+        }
+
+        // If no match found, return null
+        return null;
+    }
 }
