@@ -14,7 +14,7 @@ public class Adduct {
      */
     public static Double getMonoisotopicMassFromMZ(Double mz, String adduct) {
         Double massToSearch;
-
+        System.out.println("MZ: " + mz + " Adduct: " + adduct);
         Double adductMass = getAdductMass(adduct);
         int charge = getCharge(adduct);
         int multimer = getMultimer(adduct);
@@ -62,13 +62,31 @@ public class Adduct {
         }
     }
 
-    private static int getMultimer(String adduct) {
+    public static int getMultimer(String adduct) {
         if (adduct.startsWith("[2M")) {
             return 2;
         } else if (adduct.startsWith("[3M")) {
             return 3;
         } else {
             return 1; // single molecule
+        }
+    }
+
+
+    public static Double getMzFromMonoisotopicMass(Double neutralMass, String adduct) {
+        Double adductMass = getAdductMass(adduct);
+        int charge = getCharge(adduct);
+        int multimer = getMultimer(adduct);
+        System.out.println("adduct: " + adduct + "AdductMass: " + adductMass + "Charge: " + charge + "Multimer: " + multimer);
+
+        if (charge == 1 && multimer == 1) {
+            return neutralMass + adductMass;
+        } else if (charge > 1 && multimer == 1) {
+            return (neutralMass + adductMass) / charge;
+        } else if (multimer > 1) {
+            return (neutralMass * multimer) - adductMass;
+        } else {
+            throw new RuntimeException("Unsupported adduct format: " + adduct);
         }
     }
 

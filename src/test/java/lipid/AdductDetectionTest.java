@@ -30,10 +30,10 @@ public class AdductDetectionTest {
     public void testGetMonoisotopicMass() {
         Double mz = 200.5;
         String adduct = "[M+H]+";
-        Double expectedMass = 200.5-1.007276; // Adjust this to match your expected value
+        Double expectedMass = 200.5-1.007276;
 
         Double result = Adduct.getMonoisotopicMassFromMZ(mz, adduct);
-        assertEquals(expectedMass, result, 0.01); // Use an acceptable delta for floating-point comparisons
+        assertEquals(expectedMass, result, 0.01);
     }
 
     @Test

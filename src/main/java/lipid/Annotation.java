@@ -1,9 +1,10 @@
 package lipid;
 
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import adduct.Adduct;
+import adduct.AdductList;
+import org.checkerframework.checker.units.qual.A;
+
+import java.util.*;
 
 /**
  * Class to represent the annotation over a lipid
@@ -31,7 +32,10 @@ public class Annotation {
         this.rtMin = retentionTime;
         this.intensity = intensity;
         // !!TODO This set should be sorted according to help the program to deisotope the signals plus detect the adduct
-        this.groupedSignals = new TreeSet<>(groupedSignals);
+        //Sorted set by m/z?
+        //this.groupedSignals = new TreeSet<>(groupedSignals);
+        this.groupedSignals = new TreeSet<>(Comparator.comparingDouble(Peak::getMz));
+        this.groupedSignals.addAll(groupedSignals);
     }
 
     public Lipid getLipid() {
@@ -68,11 +72,12 @@ public class Annotation {
 
     public void setScore(int score) {
         this.score = score;
+        //this.score = Math.max(0.0, Math.min(1.0, score)); // Clamp to [0,1]?
     }
 
     // !TODO Take into account that the score should be normalized between 0 and 1
-    public void addScore(int delta) {
-        this.score += delta;
+    public void addScore(int adductMass) {
+        this.score += adductMass;
     }
 
     @Override
@@ -97,28 +102,101 @@ public class Annotation {
 
     // !!TODO Detect the adduct with an algorithm or with drools, up to the user.
     public String detectAdduct() {
-        // Find the closest peak by comparing mz values
+        final double TOLERANCE_PPM = 10.0;
+
         Peak closestPeak = null;
         double closestMzDiff = Double.MAX_VALUE;
 
-        for (Peak peak : groupedSignals) {
-            double mzDiff = Math.abs(peak.getMz() - this.mz);
-            if (mzDiff < closestMzDiff) {
-                closestMzDiff = mzDiff;
-                closestPeak = peak;
+        // Find the closest peak in m/z
+        for (Peak p : groupedSignals) {
+            double diffMz = Math.abs(p.getMz() - this.mz);
+            if (diffMz < closestMzDiff) {
+                closestMzDiff = diffMz;
+                closestPeak = p;
             }
         }
 
-        // Return the corresponding adduct for the closest peak
         if (closestPeak != null) {
-            if (closestPeak.getMz() == 700.500) {
-                return "[M+H]+";
-            } else if (closestPeak.getMz() == 722.482) {
-                return "[M+Na]+";
+            double peakMz = closestPeak.getMz();
+
+            // Check positive adducts
+            for (Map.Entry<String, Double> entry : AdductList.MAPMZPOSITIVEADDUCTS.entrySet()) {
+                String adductName = entry.getKey();
+                double adductMass = entry.getValue();
+
+                int charge = Adduct.getCharge(adductName);
+                int multimer = Adduct.getMultimer(adductName);
+
+                double neutralMass;
+                if (charge == 1 && multimer == 1) {
+                    neutralMass = peakMz - adductMass;
+                } else if (charge > 1 && multimer == 1) {
+                    neutralMass = (peakMz * charge) - adductMass;
+                } else if (multimer > 1) {
+                    neutralMass = (peakMz + adductMass) / multimer;
+                } else {
+                    continue;
+                }
+
+                double expectedMz;
+                if (charge == 1 && multimer == 1) {
+                    expectedMz = neutralMass + adductMass;
+                } else if (charge > 1 && multimer == 1) {
+                    expectedMz = (neutralMass + adductMass) / charge;
+                } else if (multimer > 1) {
+                    expectedMz = (neutralMass * multimer) - adductMass;
+                } else {
+                    continue;
+                }
+
+
+                double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
+                if (ppmError <= TOLERANCE_PPM) {
+                    this.adduct = adductName;
+                    return adductName;
+                }
+            }
+
+            // Check negative adducts
+            for (Map.Entry<String, Double> entry : AdductList.MAPMZNEGATIVEADDUCTS.entrySet()) {
+                String adductName = entry.getKey();
+                double adductMass = entry.getValue();
+
+                int charge = Adduct.getCharge(adductName);
+                int multimer = Adduct.getMultimer(adductName);
+
+                double neutralMass;
+                if (charge == 1 && multimer == 1) {
+                    neutralMass = peakMz - adductMass;
+                } else if (charge > 1 && multimer == 1) {
+                    neutralMass = (peakMz * charge) - adductMass;
+                } else if (multimer > 1) {
+                    neutralMass = (peakMz + adductMass) / multimer;
+                } else {
+                    continue;
+                }
+
+                double expectedMz;
+                if (charge == 1 && multimer == 1) {
+                    expectedMz = neutralMass + adductMass;
+                } else if (charge > 1 && multimer == 1) {
+                    expectedMz = (neutralMass + adductMass) / charge;
+                } else if (multimer > 1) {
+                    expectedMz = (neutralMass * multimer) - adductMass;
+                } else {
+                    continue;
+                }
+
+                double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
+                if (ppmError <= TOLERANCE_PPM) {
+                    this.adduct = adductName;
+                    return adductName;
+                }
             }
         }
 
-        // If no match found, return null
         return null;
     }
+
+
 }
