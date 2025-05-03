@@ -1,5 +1,6 @@
 package lipid;
 
+import adduct.Adduct;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +20,24 @@ public class AdductDetectionTest {
     }
 
     @Test
-    public void shouldDetectAdductBasedOnMzDifference() {
+    public void testGetCharge() {
+        assertEquals(1, Adduct.getCharge("[M+H]+"));
+        assertEquals(2, Adduct.getCharge("[M+2H]2+"));
+        assertEquals(3, Adduct.getCharge("[M+3-]"));
+    }
 
+    @Test
+    public void testGetMonoisotopicMass() {
+        Double mz = 200.5;
+        String adduct = "[M+H]+";
+        Double expectedMass = 200.5-1.007276; // Adjust this to match your expected value
+
+        Double result = Adduct.getMonoisotopicMassFromMZ(mz, adduct);
+        assertEquals(expectedMass, result, 0.01); // Use an acceptable delta for floating-point comparisons
+    }
+
+    @Test
+    public void shouldDetectAdductBasedOnMzDifference() {
         // Given two peaks with ~21.98 Da difference (e.g., [M+H]+ and [M+Na]+)
         Peak mH = new Peak(700.500, 100000.0); // [M+H]+
         Peak mNa = new Peak(722.482, 80000.0);  // [M+Na]+
@@ -31,11 +48,9 @@ public class AdductDetectionTest {
         double annotationRT = 6.5d;
         Annotation annotation = new Annotation(lipid, annotationMZ, annotationIntensity, annotationRT, Set.of(mH, mNa));
 
-
-        // Then we should call the algorithmic/knowledge system rules fired to detect the adduct and Set it!
-        //
-        assertNotNull("[M+H]+ should be detected", annotation.getAdduct());
-        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+", annotation.getAdduct());
+        // Then
+        assertNotNull("[M+H]+ should be detected", annotation.detectAdduct());
+        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+", annotation.detectAdduct());
     }
 
 
@@ -47,11 +62,8 @@ public class AdductDetectionTest {
         Lipid lipid = new Lipid(1, "PE 36:2", "C41H78NO8P", "PE", 36, 2);
         Annotation annotation = new Annotation(lipid, mh.getMz(), mh.getIntensity(), 7.5d, Set.of(mh, mhH2O));
 
-
-
-        assertNotNull("[M+H]+ should be detected", annotation.getAdduct());
-
-        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+", annotation.getAdduct());
+        assertNotNull("[M+H]+ should be detected",   annotation.detectAdduct());
+        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+",  annotation.detectAdduct());
     }
 
     @Test
@@ -64,9 +76,8 @@ public class AdductDetectionTest {
         Lipid lipid = new Lipid(3, "TG 54:3", "C57H104O6", "TG", 54, 3);
         Annotation annotation = new Annotation(lipid, singlyCharged.getMz(), singlyCharged.getIntensity(), 10d, Set.of(singlyCharged, doublyCharged));
 
-        assertNotNull("[M+H]+ should be detected", annotation.getAdduct());
-
-        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+", annotation.getAdduct());
+        assertNotNull("[M+H]+ should be detected",  annotation.detectAdduct());
+        assertEquals( "Adduct inferred from lowest mz in group","[M+H]+",  annotation.detectAdduct());
     }
 
 }
