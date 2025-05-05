@@ -101,7 +101,7 @@ public class Annotation {
     }
 
     // !!TODO Detect the adduct with an algorithm or with drools, up to the user.
-    public String detectAdduct() {
+    public String detectAdduct(IonizationMode ionizationMode) {
         final double TOLERANCE_PPM = 10.0;
 
         Peak closestPeak = null;
@@ -116,48 +116,13 @@ public class Annotation {
             }
         }
 
+        Map<String, Double> map = Adduct.getAdductMapByIonizationMode(ionizationMode);
+
         if (closestPeak != null) {
             double peakMz = closestPeak.getMz();
 
             // Check positive adducts
-            for (Map.Entry<String, Double> entry : AdductList.MAPMZPOSITIVEADDUCTS.entrySet()) {
-                String adductName = entry.getKey();
-                double adductMass = entry.getValue();
-
-                int charge = Adduct.getCharge(adductName);
-                int multimer = Adduct.getMultimer(adductName);
-
-                double neutralMass;
-                if (charge == 1 && multimer == 1) {
-                    neutralMass = peakMz - adductMass;
-                } else if (charge > 1 && multimer == 1) {
-                    neutralMass = (peakMz * charge) - adductMass;
-                } else if (multimer > 1) {
-                    neutralMass = (peakMz + adductMass) / multimer;
-                } else {
-                    continue;
-                }
-
-                double expectedMz;
-                if (charge == 1 && multimer == 1) {
-                    expectedMz = neutralMass + adductMass;
-                } else if (charge > 1 && multimer == 1) {
-                    expectedMz = (neutralMass + adductMass) / charge;
-                } else if (multimer > 1) {
-                    expectedMz = (neutralMass * multimer) - adductMass;
-                } else {
-                    continue;
-                }
-
-                double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
-                if (ppmError <= TOLERANCE_PPM) {
-                    this.adduct = adductName;
-                    return adductName;
-                }
-            }
-
-            // Check negative adducts
-            for (Map.Entry<String, Double> entry : AdductList.MAPMZNEGATIVEADDUCTS.entrySet()) {
+            for (Map.Entry<String, Double> entry : map.entrySet()) {
                 String adductName = entry.getKey();
                 double adductMass = entry.getValue();
 
@@ -193,7 +158,6 @@ public class Annotation {
                 }
             }
         }
-
         return "No Peak match with AdductList";
     }
 

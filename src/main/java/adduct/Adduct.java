@@ -1,5 +1,7 @@
 package adduct;
 
+import lipid.IonizationMode;
+
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,6 +98,16 @@ public class Adduct {
             return (neutralMass * multimer) - adductMass;
         } else {
             throw new RuntimeException("Unsupported adduct format: " + adduct);
+        }
+    }
+
+    public static Map<String, Double> getAdductMapByIonizationMode(IonizationMode ionizationMode) {
+        if (ionizationMode == IonizationMode.POSITIVE) {
+            return AdductList.MAPMZPOSITIVEADDUCTS;
+        } else if (ionizationMode == IonizationMode.NEGATIVE) {
+            return AdductList.MAPMZNEGATIVEADDUCTS;
+        } else {
+            throw new IllegalArgumentException("Unknown ionization mode: " + ionizationMode);
         }
     }
 
