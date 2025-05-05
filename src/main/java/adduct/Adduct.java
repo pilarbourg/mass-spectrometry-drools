@@ -1,6 +1,8 @@
 package adduct;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Adduct {
 
@@ -16,18 +18,22 @@ public class Adduct {
         Double massToSearch;
         System.out.println("MZ: " + mz + " Adduct: " + adduct);
         Double adductMass = getAdductMass(adduct);
+        System.out.println("Mass: " + adductMass + " Adduct: " + adduct);
         int charge = getCharge(adduct);
         int multimer = getMultimer(adduct);
 
         if (charge == 1 && multimer == 1) {
             // Single charged, single molecule: if Adduct is single charge the formula is M = m/z +- adductMass. Charge is 1 so it does not affect
             massToSearch = mz + adductMass;
+            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
         } else if (charge > 1 && multimer == 1) {
             // Multi-charged single molecule: if Adduct is double or triple charged the formula is M =( mz - adductMass ) * charge
-            massToSearch = (mz + adductMass) * charge;
+            massToSearch = (mz * charge) - adductMass;
+            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
         } else if (multimer > 1) {
             // Multimers (dimers, trimers, etc.): if adduct is a dimer the formula is M =  (mz - adductMass) / numberOfMultimer
             massToSearch = (mz + adductMass) / multimer;
+            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
         } else {
             throw new RuntimeException("Unsupported adduct format: " + adduct);
         }
@@ -39,9 +45,10 @@ public class Adduct {
         Map<String, Double> negMap = AdductList.MAPMZNEGATIVEADDUCTS;
 
         if (posMap.containsKey(adduct)) {
-            return Double.valueOf(posMap.get(adduct));
+            System.out.println("ADDUCT: " + posMap.get(adduct));
+            return posMap.get(adduct);
         } else if (negMap.containsKey(adduct)) {
-            return Double.valueOf(negMap.get(adduct));
+            return negMap.get(adduct);
         } else {
             throw new RuntimeException("Adduct not found: " + adduct);
         }
@@ -49,18 +56,20 @@ public class Adduct {
 
     public static int getCharge(String adduct) {
         adduct = adduct.trim();
-        if (adduct.contains("3+")) {
-            return 3;
-        } else if (adduct.contains("2+")) {
-            return 2;
-        } else if (adduct.contains("3−") || adduct.contains("3-")) {
-            return 3;
-        } else if (adduct.contains("2−") || adduct.contains("2-")) {
-            return 2;
-        } else {
-            return 1; // default single charge
+
+        // Match patterns like 2+, 3−, 2-, etc., at the END of the adduct string
+        Pattern pattern = Pattern.compile("(\\d+)?([+−-])$");
+        Matcher matcher = pattern.matcher(adduct);
+
+        if (matcher.find()) {
+            String chargeStr = matcher.group(1);
+            return (chargeStr != null) ? Integer.parseInt(chargeStr) : 1;
         }
+
+        // Default to 1+ if no match
+        return 1;
     }
+
 
     public static int getMultimer(String adduct) {
         if (adduct.startsWith("[2M")) {

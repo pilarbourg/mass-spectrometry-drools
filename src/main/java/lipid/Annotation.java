@@ -149,7 +149,6 @@ public class Annotation {
                     continue;
                 }
 
-
                 double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
                 if (ppmError <= TOLERANCE_PPM) {
                     this.adduct = adductName;
@@ -195,8 +194,7 @@ public class Annotation {
             }
         }
 
-        return null;
+        return "No Peak match with AdductList";
     }
-
 
 }

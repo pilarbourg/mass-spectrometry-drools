@@ -23,7 +23,7 @@ public class AdductDetectionTest {
     public void testGetCharge() {
         assertEquals(1, Adduct.getCharge("[M+H]+"));
         assertEquals(2, Adduct.getCharge("[M+2H]2+"));
-        assertEquals(3, Adduct.getCharge("[M+3-]"));
+        assertEquals(3, Adduct.getCharge("[M+3H]3+"));
     }
 
     @Test
@@ -33,7 +33,7 @@ public class AdductDetectionTest {
         Double expectedMass = 200.5-1.007276;
 
         Double result = Adduct.getMonoisotopicMassFromMZ(mz, adduct);
-        assertEquals(expectedMass, result, 0.01);
+        assertEquals(expectedMass, result, 0.001);
     }
 
     @Test
