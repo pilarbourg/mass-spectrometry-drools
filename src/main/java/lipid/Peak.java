@@ -35,7 +35,6 @@ public class Peak  implements Comparable<Peak> {
         return Double.compare(mz, other.mz) == 0;
     }
 
-
     // Implementing Comparable
     @Override
     public int compareTo(Peak otherPeak) {
