@@ -16,41 +16,53 @@ public class Adduct {
      * @return the mass difference within the tolerance respecting to the
      *      * massToSearch
      */
-    public static Double getMonoisotopicMassFromMZ(Double mz, String adduct) {
-        Double massToSearch;
-        System.out.println("MZ: " + mz + " Adduct: " + adduct);
-        Double adductMass = getAdductMass(adduct);
-        System.out.println("Mass: " + adductMass + " Adduct: " + adduct);
+    public static Double getMonoisotopicMassFromMZ(Double mz, String adduct, IonizationMode ionizationMode) {
+        Double adductValue = getAdductMass(adduct, ionizationMode);
         int charge = getCharge(adduct);
         int multimer = getMultimer(adduct);
 
-        if (charge == 1 && multimer == 1) {
-            // Single charged, single molecule: if Adduct is single charge the formula is M = m/z +- adductMass. Charge is 1 so it does not affect
-            massToSearch = mz + adductMass;
-            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
-        } else if (charge > 1 && multimer == 1) {
-            // Multi-charged single molecule: if Adduct is double or triple charged the formula is M =( mz - adductMass ) * charge
-            massToSearch = (mz * charge) - adductMass;
-            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
-        } else if (multimer > 1) {
-            // Multimers (dimers, trimers, etc.): if adduct is a dimer the formula is M =  (mz - adductMass) / numberOfMultimer
-            massToSearch = (mz + adductMass) / multimer;
-            System.out.println("Mass to search : " + massToSearch + " Adduct: " + adduct);
+        if (charge == 1 && multimer == 1) { //** Single charged, single molecule: if Adduct is single charge the formula is M = m/z +- adductMass. Charge is 1 so it does not affect
+            return getMonoMassFromSingleChargedMZ(mz, adductValue, charge);
+        } else if (charge > 1 && multimer == 1) {   //** Multi-charged single molecule: if Adduct is double or triple charged the formula is M =( mz - adductMass ) * charge
+            return getMonoMassFromMultiChargedMZ(mz, adductValue, charge);
+        } else if (multimer > 1) {  //** Multimers (dimers, trimers, etc.): if adduct is a dimer the formula is M =  (mz - adductMass) / numberOfMultimer
+            return getMonoMassFromMultimerMZ(mz, adductValue, charge, multimer);
         } else {
             throw new RuntimeException("Unsupported adduct format: " + adduct);
         }
-        return massToSearch;
     }
 
-    private static Double getAdductMass(String adduct) {
-        Map<String, Double> posMap = AdductList.MAPMZPOSITIVEADDUCTS;
-        Map<String, Double> negMap = AdductList.MAPMZNEGATIVEADDUCTS;
+    /**
+     * This method calculates the monoisotopic mass from a multi charged experimental mass (m/z)
+     * @param experimentalMass the experimental mass as a double
+     * @param adductValue the mass of the adduct as a double
+     * @return the monoisotopic weight as a double
+     */
+    public static Double getMonoMassFromSingleChargedMZ(Double experimentalMass, Double adductValue, int charge) {
+        return experimentalMass - adductValue;
+    }
 
-        if (posMap.containsKey(adduct)) {
-            System.out.println("ADDUCT: " + posMap.get(adduct));
-            return posMap.get(adduct);
-        } else if (negMap.containsKey(adduct)) {
-            return negMap.get(adduct);
+    private static Double getMonoMassFromMultimerMZ(double experimentalMass, double adductValue, int charge, int numberAtoms) {
+        double result = experimentalMass;
+        result -= adductValue;
+        result /= numberAtoms;
+        result = result + charge;
+        return result;
+    }
+
+    private static Double getMonoMassFromMultiChargedMZ(double experimentalMass, double adductValue, int charge) {
+        double result = experimentalMass;
+        result += adductValue;
+        result *= charge;
+        result = result + charge;
+        return result;
+    }
+
+    private static Double getAdductMass(String adduct, IonizationMode ionizationMode) {
+        Map<String, Double> map = getAdductMapByIonizationMode(ionizationMode);
+
+        if (map.containsKey(adduct)) {
+            return map.get(adduct);
         } else {
             throw new RuntimeException("Adduct not found: " + adduct);
         }
@@ -58,37 +70,46 @@ public class Adduct {
 
     public static int getCharge(String adduct) {
         adduct = adduct.trim();
-
-        // Match patterns like 2+, 3−, 2-, etc., at the END of the adduct string
-        Pattern pattern = Pattern.compile("(\\d+)?([+−-])$");
+        // Match at the end: digits followed by a charge sign (+, −, or -)
+        Pattern pattern = Pattern.compile("(\\d*)([+−-])$");
         Matcher matcher = pattern.matcher(adduct);
 
         if (matcher.find()) {
             String chargeStr = matcher.group(1);
-            return (chargeStr != null) ? Integer.parseInt(chargeStr) : 1;
+            int charge;
+
+            if (chargeStr.length() > 0) {
+                charge = Integer.parseInt(chargeStr);
+            } else {
+                charge = 1;
+            }
+
+            return charge;
         }
 
-        // Default to 1+ if no match
         return 1;
     }
 
 
     public static int getMultimer(String adduct) {
-        if (adduct.startsWith("[2M")) {
-            return 2;
-        } else if (adduct.startsWith("[3M")) {
-            return 3;
-        } else {
-            return 1; // single molecule
+        adduct = adduct.trim();
+        Pattern pattern = Pattern.compile("^\\[(\\d*)M");
+        Matcher matcher = pattern.matcher(adduct);
+
+        if (matcher.find()) {
+            String multimerString = matcher.group(1);
+            if (multimerString != null && !multimerString.isEmpty()) {
+                return Integer.parseInt(multimerString);
+            }
         }
+        return 1; // Default to monomer if no number found
     }
 
 
-    public static Double getMzFromMonoisotopicMass(Double neutralMass, String adduct) {
-        Double adductMass = getAdductMass(adduct);
+    public static Double getMzFromMonoisotopicMass(Double neutralMass, String adduct, IonizationMode ionizationMode) {
+        Double adductMass = getAdductMass(adduct, ionizationMode);
         int charge = getCharge(adduct);
         int multimer = getMultimer(adduct);
-        System.out.println("adduct: " + adduct + "AdductMass: " + adductMass + "Charge: " + charge + "Multimer: " + multimer);
 
         if (charge == 1 && multimer == 1) {
             return neutralMass + adductMass;
@@ -110,5 +131,32 @@ public class Adduct {
             throw new IllegalArgumentException("Unknown ionization mode: " + ionizationMode);
         }
     }
+
+    /**
+     * Returns the ppm difference between measured mass and theoretical mass
+     *
+     * @param experimentalMass    Mass measured by MS
+     * @param theoreticalMass Theoretical mass of the compound
+     */
+    public static int calculatePPMIncrement(Double experimentalMass, Double theoreticalMass) {
+        int ppmIncrement;
+        ppmIncrement = (int) Math.round(Math.abs((experimentalMass - theoreticalMass) * 1000000
+                / theoreticalMass));
+        return ppmIncrement;
+    }
+
+    /**
+     * Returns the ppm difference between measured mass and theoretical mass
+     *
+     * @param experimentalMass    Mass measured by MS
+     * @param ppm ppm of tolerance
+     */
+    public static double calculateDeltaPPM(Double experimentalMass, int ppm) {
+        double deltaPPM;
+        deltaPPM =  Math.round(Math.abs((experimentalMass * ppm) / 1000000));
+        return deltaPPM;
+
+    }
+
 
 }

@@ -1,8 +1,7 @@
 package lipid;
 
 import adduct.Adduct;
-import adduct.AdductList;
-import org.checkerframework.checker.units.qual.A;
+
 
 import java.util.*;
 
@@ -17,7 +16,20 @@ public class Annotation {
     private final double rtMin;
     private String adduct; // !!TODO The adduct will be detected based on the groupedSignals
     private final Set<Peak> groupedSignals;
-    private int score = 0;
+    private int score;
+    private int totalScoresApplied;
+
+
+    /**
+     * @param lipid
+     * @param mz
+     * @param intensity
+     * @param retentionTime
+     */
+    public Annotation(Lipid lipid, double mz, double intensity, double retentionTime) {
+        this(lipid, mz, intensity, retentionTime, Collections.emptySet());
+    }
+
 
     /**
      * @param lipid
@@ -36,6 +48,8 @@ public class Annotation {
         //this.groupedSignals = new TreeSet<>(groupedSignals);
         this.groupedSignals = new TreeSet<>(Comparator.comparingDouble(Peak::getMz));
         this.groupedSignals.addAll(groupedSignals);
+        this.score = 0;
+        this.totalScoresApplied = 0;
     }
 
     public Lipid getLipid() {
@@ -76,9 +90,15 @@ public class Annotation {
     }
 
     // !TODO Take into account that the score should be normalized between 0 and 1
-    public void addScore(int adductMass) {
-        this.score += adductMass;
+    public void addScore(int delta) {
+        this.score += delta;
+        this.totalScoresApplied++;
     }
+
+    public double getNormalizedScore() {
+        return (double) this.score / this.totalScoresApplied;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -101,7 +121,7 @@ public class Annotation {
     }
 
     // !!TODO Detect the adduct with an algorithm or with drools, up to the user.
-    public String detectAdduct(IonizationMode ionizationMode) {
+    public String detectAdducts(IonizationMode ionizationMode) {
         final double TOLERANCE_PPM = 10.0;
 
         Peak closestPeak = null;
@@ -121,7 +141,6 @@ public class Annotation {
         if (closestPeak != null) {
             double peakMz = closestPeak.getMz();
 
-            // Check positive adducts
             for (Map.Entry<String, Double> entry : map.entrySet()) {
                 String adductName = entry.getKey();
                 double adductMass = entry.getValue();
@@ -139,6 +158,7 @@ public class Annotation {
                 } else {
                     continue;
                 }
+
 
                 double expectedMz;
                 if (charge == 1 && multimer == 1) {
@@ -158,6 +178,52 @@ public class Annotation {
                 }
             }
         }
+        return "No Peak match with AdductList";
+    }
+
+
+    public String detectAdduct(IonizationMode ionizationMode) {
+        final double TOLERANCE_PPM = 10.0;
+
+        Peak closestPeak = null;
+        double closestMzDiff = Double.MAX_VALUE;
+
+        for (Peak p : groupedSignals) {
+            double diffMz = Math.abs(p.getMz() - this.mz);
+            if (diffMz < closestMzDiff) {
+                closestMzDiff = diffMz;
+                closestPeak = p;
+            }
+        }
+
+        Map<String, Double> map = Adduct.getAdductMapByIonizationMode(ionizationMode);
+
+        if (closestPeak != null) {
+            double peakMz = closestPeak.getMz();
+
+            for (Map.Entry<String, Double> entry : map.entrySet()) {
+                String adductName = entry.getKey();
+                double adductMass = entry.getValue();
+
+                int charge = Adduct.getCharge(adductName);
+                int multimer = Adduct.getMultimer(adductName);
+
+                try {
+                    double monoMass = Adduct.getMonoisotopicMassFromMZ(peakMz, adductName, ionizationMode);
+                    double expectedMz = Adduct.getMzFromMonoisotopicMass(monoMass, adductName, ionizationMode);
+
+                    double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
+                    if (ppmError <= TOLERANCE_PPM) {
+                        this.adduct = adductName;
+                        return adductName;
+                    }
+                } catch (IllegalArgumentException e) {
+                    // skip invalid charge/multimer combinations
+                    continue;
+                }
+            }
+        }
+
         return "No Peak match with AdductList";
     }
 

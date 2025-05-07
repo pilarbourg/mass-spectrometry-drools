@@ -32,7 +32,7 @@ public class AdductDetectionTest {
         String adduct = "[M+H]+";
         Double expectedMass = 200.5-1.007276;
 
-        Double result = Adduct.getMonoisotopicMassFromMZ(mz, adduct);
+        Double result = Adduct.getMonoisotopicMassFromMZ(mz, adduct, IonizationMode.POSITIVE);
         assertEquals(expectedMass, result, 0.001);
     }
 
