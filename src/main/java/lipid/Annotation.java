@@ -43,9 +43,6 @@ public class Annotation {
         this.mz = mz;
         this.rtMin = retentionTime;
         this.intensity = intensity;
-        // !!TODO This set should be sorted according to help the program to deisotope the signals plus detect the adduct
-        //Sorted set by m/z?
-        //this.groupedSignals = new TreeSet<>(groupedSignals);
         this.groupedSignals = new TreeSet<>(Comparator.comparingDouble(Peak::getMz));
         this.groupedSignals.addAll(groupedSignals);
         this.score = 0;
