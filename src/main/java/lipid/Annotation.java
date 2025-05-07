@@ -120,68 +120,6 @@ public class Annotation {
                 lipid.getName(), mz, rtMin, adduct, intensity, score);
     }
 
-    // !!TODO Detect the adduct with an algorithm or with drools, up to the user.
-    public String detectAdducts(IonizationMode ionizationMode) {
-        final double TOLERANCE_PPM = 10.0;
-
-        Peak closestPeak = null;
-        double closestMzDiff = Double.MAX_VALUE;
-
-        // Find the closest peak in m/z
-        for (Peak p : groupedSignals) {
-            double diffMz = Math.abs(p.getMz() - this.mz);
-            if (diffMz < closestMzDiff) {
-                closestMzDiff = diffMz;
-                closestPeak = p;
-            }
-        }
-
-        Map<String, Double> map = Adduct.getAdductMapByIonizationMode(ionizationMode);
-
-        if (closestPeak != null) {
-            double peakMz = closestPeak.getMz();
-
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-                String adductName = entry.getKey();
-                double adductMass = entry.getValue();
-
-                int charge = Adduct.getCharge(adductName);
-                int multimer = Adduct.getMultimer(adductName);
-
-                double neutralMass;
-                if (charge == 1 && multimer == 1) {
-                    neutralMass = peakMz - adductMass;
-                } else if (charge > 1 && multimer == 1) {
-                    neutralMass = (peakMz * charge) - adductMass;
-                } else if (multimer > 1) {
-                    neutralMass = (peakMz + adductMass) / multimer;
-                } else {
-                    continue;
-                }
-
-
-                double expectedMz;
-                if (charge == 1 && multimer == 1) {
-                    expectedMz = neutralMass + adductMass;
-                } else if (charge > 1 && multimer == 1) {
-                    expectedMz = (neutralMass + adductMass) / charge;
-                } else if (multimer > 1) {
-                    expectedMz = (neutralMass * multimer) - adductMass;
-                } else {
-                    continue;
-                }
-
-                double ppmError = Math.abs((expectedMz - this.mz) / this.mz) * 1_000_000;
-                if (ppmError <= TOLERANCE_PPM) {
-                    this.adduct = adductName;
-                    return adductName;
-                }
-            }
-        }
-        return "No Peak match with AdductList";
-    }
-
-
     public String detectAdduct(IonizationMode ionizationMode) {
         final double TOLERANCE_PPM = 10.0;
 
