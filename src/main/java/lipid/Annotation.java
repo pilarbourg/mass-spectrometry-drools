@@ -18,7 +18,7 @@ public class Annotation {
     private final Set<Peak> groupedSignals;
     private double score;
     private int totalScoresApplied;
-
+    private final List<Double> allScores = new ArrayList<>();
 
     /**
      * @param lipid
@@ -29,7 +29,6 @@ public class Annotation {
     public Annotation(Lipid lipid, double mz, double intensity, double retentionTime) {
         this(lipid, mz, intensity, retentionTime, Collections.emptySet());
     }
-
 
     /**
      * @param lipid
@@ -81,22 +80,29 @@ public class Annotation {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(double score) {
         this.score = score;
-        //this.score = Math.max(0.0, Math.min(1.0, score)); // Clamp to [0,1]?
     }
 
-    // !TODO Take into account that the score should be normalized between 0 and 1
+    // ** "Take into account that the score should be normalized between 0 and 1"
+    // ** Completed
     public void addScore(int delta) {
-        this.score = getNormalizedScore();
         this.score += delta;
+        allScores.add((double) this.score);  // Keep track of each incremental score
         this.totalScoresApplied++;
+        this.score = getNormalizedScore();  // Normalize based on allScores list
     }
 
     public double getNormalizedScore() {
-        return (double) this.score / this.totalScoresApplied;
-    }
+        if (allScores.isEmpty()) return 0.0;
+        double min = Collections.min(allScores);
+        double max = Collections.max(allScores);
+        double last = allScores.getLast();
 
+        if (max == min) return 1.0;
+
+        return (double) (last - min) / (max - min);
+    }
 
     @Override
     public boolean equals(Object o) {
