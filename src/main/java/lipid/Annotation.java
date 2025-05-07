@@ -19,6 +19,7 @@ public class Annotation {
     private double score;
     private int totalScoresApplied;
     private final List<Double> allScores = new ArrayList<>();
+    private final IonizationMode ionizationMode;
 
     /**
      * @param lipid
@@ -26,8 +27,8 @@ public class Annotation {
      * @param intensity
      * @param retentionTime
      */
-    public Annotation(Lipid lipid, double mz, double intensity, double retentionTime) {
-        this(lipid, mz, intensity, retentionTime, Collections.emptySet());
+    public Annotation(Lipid lipid, double mz, double intensity, double retentionTime, IonizationMode ionizationMode) {
+        this(lipid, mz, intensity, retentionTime, Collections.emptySet(), ionizationMode);
     }
 
     /**
@@ -37,7 +38,7 @@ public class Annotation {
      * @param retentionTime
      * @param groupedSignals
      */
-    public Annotation(Lipid lipid, double mz, double intensity, double retentionTime, Set<Peak> groupedSignals) {
+    public Annotation(Lipid lipid, double mz, double intensity, double retentionTime, Set<Peak> groupedSignals, IonizationMode ionizationMode) {
         this.lipid = lipid;
         this.mz = mz;
         this.rtMin = retentionTime;
@@ -46,6 +47,7 @@ public class Annotation {
         this.groupedSignals.addAll(groupedSignals);
         this.score = 0;
         this.totalScoresApplied = 0;
+        this.ionizationMode = ionizationMode;
     }
 
     public Lipid getLipid() {
@@ -76,6 +78,10 @@ public class Annotation {
         return Collections.unmodifiableSet(groupedSignals);
     }
 
+    public IonizationMode getIonizationMode() {
+        return ionizationMode;
+    }
+
     public double getScore() {
         return score;
     }
@@ -86,7 +92,7 @@ public class Annotation {
 
     // ** "Take into account that the score should be normalized between 0 and 1"
     // ** Completed
-    public void addScore(int delta) {
+    public void addScore(double delta) {
         this.score += delta;
         allScores.add((double) this.score);  // Keep track of each incremental score
         this.totalScoresApplied++;
@@ -120,7 +126,7 @@ public class Annotation {
 
     @Override
     public String toString() {
-        return String.format("Annotation(%s, mz=%.4f, RT=%.2f, adduct=%s, intensity=%.1f, score=%d)",
+        return String.format("Annotation(%s, mz=%.4f, RT=%.2f, adduct=%s, intensity=%.1f, score=%.2f)",
                 lipid.getName(), mz, rtMin, adduct, intensity, score);
     }
 

@@ -40,10 +40,9 @@ public class ElutionOrderTest {
         Lipid lipid1 = new Lipid(1, "TG 54:3", "C57H104O6", "TG", 54, 3); // MZ of [M+H]+ = 885.79057
         Lipid lipid2 = new Lipid(2, "TG 52:3", "C55H100O6", "TG", 52, 3); // MZ of [M+H]+ = 857.75927
         Lipid lipid3 = new Lipid(3, "TG 56:3", "C59H108O6", "TG", 56, 3); // MZ of [M+H]+ = 913.82187
-        Annotation annotation1 = new Annotation(lipid1, 885.79056, 10E6, 10d);
-        Annotation annotation2 = new Annotation(lipid2, 857.7593, 10E7, 9d);
-        Annotation annotation3 = new Annotation(lipid3, 913.822, 10E5, 11d);
-
+        Annotation annotation1 = new Annotation(lipid1, 885.79056, 10E6, 10d, IonizationMode.POSITIVE);
+        Annotation annotation2 = new Annotation(lipid2, 857.7593, 10E7, 9d, IonizationMode.POSITIVE);
+        Annotation annotation3 = new Annotation(lipid3, 913.822, 10E5, 11d, IonizationMode.POSITIVE);
 
         LOG.info("Insert data");
 

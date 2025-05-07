@@ -13,7 +13,7 @@ public class AnnotationTest {
     public void setup() {
         annotation = new Annotation(
                 new Lipid(1, "TG(16:0/16:0/16:0)", "C51H98O6", "TG", 51, 2),
-                500.0, 1000.0, 10.0
+                500.0, 1000.0, 10.0, IonizationMode.POSITIVE
         );
     }
 
