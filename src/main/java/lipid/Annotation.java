@@ -16,7 +16,7 @@ public class Annotation {
     private final double rtMin;
     private String adduct;
     private final Set<Peak> groupedSignals;
-    private int score;
+    private double score;
     private int totalScoresApplied;
 
 
@@ -77,7 +77,7 @@ public class Annotation {
         return Collections.unmodifiableSet(groupedSignals);
     }
 
-    public int getScore() {
+    public double getScore() {
         return score;
     }
 
@@ -88,6 +88,7 @@ public class Annotation {
 
     // !TODO Take into account that the score should be normalized between 0 and 1
     public void addScore(int delta) {
+        this.score = getNormalizedScore();
         this.score += delta;
         this.totalScoresApplied++;
     }
