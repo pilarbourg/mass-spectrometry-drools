@@ -39,12 +39,12 @@ public class Adduct {
      * @return the monoisotopic weight as a double
      */
     public static Double getMonoMassFromSingleChargedMZ(Double experimentalMass, Double adductValue, int charge) {
-        return experimentalMass - adductValue;
+        return experimentalMass + adductValue;
     }
 
     private static Double getMonoMassFromMultimerMZ(double experimentalMass, double adductValue, int charge, int numberAtoms) {
         double result = experimentalMass;
-        result -= adductValue;
+        result += adductValue;
         result /= numberAtoms;
         result = result + charge;
         return result;
@@ -52,7 +52,7 @@ public class Adduct {
 
     private static Double getMonoMassFromMultiChargedMZ(double experimentalMass, double adductValue, int charge) {
         double result = experimentalMass;
-        result += adductValue;
+        result -= adductValue;
         result *= charge;
         result = result + charge;
         return result;
@@ -112,11 +112,11 @@ public class Adduct {
         int multimer = getMultimer(adduct);
 
         if (charge == 1 && multimer == 1) {
-            return neutralMass + adductMass;
+            return neutralMass - adductMass;
         } else if (charge > 1 && multimer == 1) {
-            return (neutralMass + adductMass) / charge;
+            return (neutralMass - adductMass) / charge;
         } else if (multimer > 1) {
-            return (neutralMass * multimer) - adductMass;
+            return (neutralMass * multimer) + adductMass;
         } else {
             throw new RuntimeException("Unsupported adduct format: " + adduct);
         }
