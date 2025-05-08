@@ -2,24 +2,24 @@ package lipid;
 
 unit LipidScoreUnit;
 
-// TODO Include here rules and queries to fulfill the practice requirements
-
-
-// This is one example of rules that only prints the factorial combination of all pairs eliminating the A-A combination.
-// !! TODO This rule does not include the lipid type, you shall add it.
-// !! TODO Rule that states that the same lipid type with the same number of double bonds and a higher number of carbons should have a higher RT
-// !! TODO
+// !! This rule does not include the lipid type, you shall add it.
+// !! ** Same lipid type with the same number of double bonds and a higher number of carbons should have a higher RT
 // This is one example of rules that only prints the factorial combination of all pairs eliminating the A-A combination.
 rule "Score 1 for lipid pair with increasing RT and carbon count"
 when
-    $a1 : /annotations [$rt1 : rtMin, $carbonCount1 : lipid.getCarbonCount(), $doubleBondCount : lipid.getDoubleBondsCount()]
-    $a2 : /annotations [this != $a1, lipid.getDoubleBondsCount() == $doubleBondCount, rtMin > $rt1, lipid.getCarbonCount() > $carbonCount1]
+    $a1 : /annotations [$rt1 : rtMin, $carbonCount1 : lipid.getCarbonCount(), $doubleBondCount : lipid.getDoubleBondsCount(), $lipidType : lipid.getLipidType()]
+    $a2 : /annotations [this != $a1, lipid.getDoubleBondsCount() == $doubleBondCount, lipid.getLipidType() == $lipidType, rtMin > $rt1, lipid.getCarbonCount() > $carbonCount1]
 then
-    // Make sure the score is added as a Double (1.0 instead of 1)
-    $a1.addScore(1.0);  // Adding as a Double
-    $a2.addScore(1.0);  // Adding as a Double
+    $a1.addScore(1.0d);  // Double
+    $a2.addScore(1.0d);  // Double
     // !! TODO ONLY FOR DEBUGGING
     System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
 // !! TODO NEXT RULE: Negative evidence. If the RT follows the opposite order than the previous one, then the addScore should be -1.
+rule "Negative evidence if RT follows opposite order to previous"
+when
+
+then
+
+end
