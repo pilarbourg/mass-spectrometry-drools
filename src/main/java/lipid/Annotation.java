@@ -16,7 +16,7 @@ public class Annotation {
     private final IonizationMode ionizationMode;
     private String adduct; // !!TODO The adduct will be detected based on the groupedSignals
     private final Set<Peak> groupedSignals;
-    private int score;
+    private double score;
     private int totalScoresApplied;
 
 
@@ -84,16 +84,16 @@ public class Annotation {
     }
 
 
-    public int getScore() {
+    public double getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(double score) {
         this.score = score;
     }
 
     // !CHECK Take into account that the score should be normalized between -1 and 1
-    public void addScore(int delta) {
+    public void addScore(double delta) {
         this.score += delta;
         this.totalScoresApplied++;
     }
