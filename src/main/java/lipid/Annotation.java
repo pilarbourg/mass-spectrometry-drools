@@ -108,22 +108,19 @@ public class Annotation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Annotation)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         Annotation that = (Annotation) o;
-        return Double.compare(that.mz, mz) == 0 &&
-                Double.compare(that.rtMin, rtMin) == 0 &&
-                Objects.equals(lipid, that.lipid);
+        return Double.compare(mz, that.mz) == 0 && Double.compare(intensity, that.intensity) == 0 && Double.compare(rtMin, that.rtMin) == 0 && Double.compare(score, that.score) == 0 && totalScoresApplied == that.totalScoresApplied && Objects.equals(lipid, that.lipid) && ionizationMode == that.ionizationMode && Objects.equals(adduct, that.adduct) && Objects.equals(groupedSignals, that.groupedSignals);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lipid, mz, rtMin);
+        return Objects.hash(lipid, mz, intensity, rtMin, ionizationMode, adduct, groupedSignals, score, totalScoresApplied);
     }
 
     @Override
     public String toString() {
-        return String.format("Annotation(%s, mz=%.4f, RT=%.2f, adduct=%s, intensity=%.1f, score=%d)",
+        return String.format("Annotation(%s, mz=%.4f, RT=%.2f, adduct=%s, intensity=%.1f, score=%.2f)",
                 lipid.getName(), mz, rtMin, adduct, intensity, score);
     }
 
