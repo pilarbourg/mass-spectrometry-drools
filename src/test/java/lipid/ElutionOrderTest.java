@@ -160,8 +160,9 @@ public class ElutionOrderTest {
      * The RT order of lipids with the same number of carbons and double bonds is the same
      * -> PG < PE < PI < PA < PS << PC.
      */
+
     @Test
-    public void negativeScoreBasedOnRTNumberOfCarbons() {
+    public void negativeScoreBasedOnLipidType() {
         // Assume lipids already annotated
         LOG.info("Creating RuleUnit");
         LipidScoreUnit lipidScoreUnit = new LipidScoreUnit();
@@ -244,7 +245,7 @@ public class ElutionOrderTest {
      * double bonds is the same. The larger the number of carbons, the longer the RT.
      */
     @Test
-    public void negativeScoreBasedOnLipidType() {
+    public void negativeScoreBasedOnRTNumberOfCarbons() {
         // Assume lipids already annotated
         LOG.info("Creating RuleUnit");
         LipidScoreUnit lipidScoreUnit = new LipidScoreUnit();

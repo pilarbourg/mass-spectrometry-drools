@@ -2,9 +2,10 @@ package lipid;
 
 unit LipidScoreUnit;
 
-// Rule 1: Score 1 for lipid pair with increasing RT and carbon count
+// !! This rule does not include the lipid type, you shall add it.
+// !! ** Same lipid type with the same number of double bonds and a higher number of carbons should have a higher RT
+// This is one example of rules that only prints the factorial combination of all pairs eliminating the A-A combination.
 rule "Score 1 for lipid pair with increasing RT and carbon count"
-salience 10  // Ensure this rule has higher priority
 when
     $a1 : /annotations [
         $rt1 : rtMin,
@@ -14,66 +15,66 @@ when
     ]
     $a2 : /annotations [
         this != $a1,
+        lipid.getCarbonCount() > $carbonCount1,
         lipid.getDoubleBondsCount() == $doubleBondCount,
-        lipid.getLipidType() == $lipidType,
-        rtMin > $rt1,
-        lipid.getCarbonCount() > $carbonCount1
+        lipid.getLipidType().equals($lipidType),
+        rtMin > $rt1
     ]
 then
-    $a1.addScore(1.0d);  // Positive score for both annotations
-    $a2.addScore(1.0d);  // Positive score for both annotations
+    $a1.addScore(1.0d);  // Double
+    $a2.addScore(1.0d);  // Double
     System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
-// Rule 2: Score 1 for lipid pair with increasing RT and double bonds
 rule "Score 1 for lipid pair with increasing RT and double bonds"
-salience 9  // Slightly lower priority than Rule 1
 when
     $a1 : /annotations [
         $rt1 : rtMin,
-        $carbonCount1 : lipid.getCarbonCount(),
-        $doubleBondCount : lipid.getDoubleBondsCount(),
+        $carbonCount : lipid.getCarbonCount(),
+        $doubleBondCount1 : lipid.getDoubleBondsCount(),
         $lipidType : lipid.getLipidType()
     ]
     $a2 : /annotations [
         this != $a1,
-        lipid.getDoubleBondsCount() < $doubleBondCount,
-        lipid.getLipidType() == $lipidType,
+        lipid.getCarbonCount() == $carbonCount,
+        lipid.getDoubleBondsCount() < $doubleBondCount1
+        lipid.getLipidType().equals($lipidType),
         rtMin > $rt1,
-        lipid.getCarbonCount() == $carbonCount1
     ]
 then
-    $a1.addScore(1.0d);  // Positive score for both annotations
-    $a2.addScore(1.0d);  // Positive score for both annotations
+    $a1.addScore(1.0d);  // Double
+    $a2.addScore(1.0d);  // Double
     System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
-// Rule 3: Score 1 for lipid pair with increasing RT and lipid type
-rule "Score 1 for lipid pair with increasing RT and lipid type"
-salience 8  // Lower priority to avoid conflict with other rules
+rule "Score 1 for lipid pair with increasing RT and higher lipid type priority"
 when
-    $a1 : /annotations [
+    $a1 : /annotations[
         $rt1 : rtMin,
-        $carbonCount1 : lipid.getCarbonCount(),
-        $doubleBondCount : lipid.getDoubleBondsCount(),
-        $lipidType : lipid.getLipidType()
+        $lipid1 : lipid,
+        $lipidType1 : lipid.getLipidType(),
+        $carbonCount : lipid.getCarbonCount(),
+        $doubleBonds : lipid.getDoubleBondsCount()
     ]
-    $a2 : /annotations [
+    $a2 : /annotations[
         this != $a1,
-        lipid.getDoubleBondsCount() == $doubleBondCount,
-        lipid.getLipidType() != $lipidType,
+        $lipid2 : lipid,
+        $lipidType2 : lipid.getLipidType(),
+        $lipidType1 != $lipidType2,
+        lipid.getCarbonCount() == $carbonCount,
+        lipid.getDoubleBondsCount() == $doubleBonds,
         rtMin > $rt1,
-        lipid.getCarbonCount() == $carbonCount1
+        eval(LipidTypePriority.isMoreRetained($lipidType2, $lipidType1)) // $a2 more retained
     ]
 then
-    $a1.addScore(1.0d);  // Positive score for both annotations
-    $a2.addScore(1.0d);  // Positive score for both annotations
-    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
+    $a1.addScore(1.0d);
+    $a2.addScore(1.0d);
+    System.out.println("Scored +1 for lipid type order: " + $a1 + " and " + $a2);
 end
 
-// Rule 4: Negative evidence if RT follows opposite order to previous based on RT and carbon count
+
+
 rule "Negative evidence if RT follows opposite order to previous based on RT and carbon count"
-salience 7  // Lower priority
 when
     $a1 : /annotations [
         $rt1 : rtMin,
@@ -83,59 +84,56 @@ when
     ]
     $a2 : /annotations [
         this != $a1,
-        lipid.getLipidType() == $lipidType,
-        lipid.getCarbonCount() < $carbonCount1,
-        rtMin < $rt1,
-        lipid.getDoubleBondsCount() == $doubleBondCount
-    ]
-then
-    $a1.addScore(-1.0d);  // Negative score for both annotations
-    $a2.addScore(-1.0d);  // Negative score for both annotations
-    System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
-end
-
-// Rule 5: Negative evidence if RT follows opposite order to previous based on RT and double bonds
-rule "Negative evidence if RT follows opposite order to previous based on RT and double bonds"
-salience 6  // Lower priority
-when
-    $a1 : /annotations [
-        $rt1 : rtMin,
-        $carbonCount1 : lipid.getCarbonCount(),
-        $doubleBondCount : lipid.getDoubleBondsCount(),
-        $lipidType : lipid.getLipidType()
-    ]
-    $a2 : /annotations [
-        this != $a1,
-        lipid.getLipidType() == $lipidType,
-        lipid.getCarbonCount() == $carbonCount1,
-        rtMin < $rt1,
-        lipid.getDoubleBondsCount() < $doubleBondCount
-    ]
-then
-    $a1.addScore(-1.0d);  // Negative score for both annotations
-    $a2.addScore(-1.0d);  // Negative score for both annotations
-    System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
-end
-
-// Rule 6: Negative evidence if RT follows opposite order to previous based on lipid type
-rule "Negative evidence if RT follows opposite order to previous based on lipid type"
-salience 5  // Lower priority
-when
-    $a1 : /annotations [
-        $rt1 : rtMin,
-        $carbonCount1 : lipid.getCarbonCount(),
-        $doubleBondCount : lipid.getDoubleBondsCount(),
-        $lipidType : lipid.getLipidType()
-    ]
-    $a2 : /annotations [
-        this != $a1,
+        rtMin < $rt1
+        lipid.getCarbonCount() > $carbonCount1,
         lipid.getDoubleBondsCount() == $doubleBondCount,
-        lipid.getLipidType() == $lipidType,
-        rtMin < $rt1,
-        lipid.getCarbonCount() > $carbonCount1
+        lipid.getLipidType().equals($lipidType),
     ]
 then
-    $a1.addScore(-1.0d);  // Negative score for both annotations
-    $a2.addScore(-1.0d);  // Negative score for both annotations
+    $a1.addScore(-1.0d);
+    $a2.addScore(-1.0d);  // Double
     System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
 end
+
+rule "Negative evidence if RT follows opposite order to previous based on RT and double bonds"
+when
+    $a1 : /annotations [
+        $rt1 : rtMin,
+        $carbonCount : lipid.getCarbonCount(),
+        $doubleBondCount1 : lipid.getDoubleBondsCount(),
+        $lipidType : lipid.getLipidType()
+    ]
+    $a2 : /annotations [
+        this != $a1,
+        lipid.getCarbonCount() == $carbonCount,
+        lipid.getDoubleBondsCount() < $doubleBondCount1,
+        lipid.getLipidType().equals($lipidType),
+        rtMin < $rt1
+    ]
+then
+    $a1.addScore(-1.0d);
+    $a2.addScore(-1.0d);  // Double
+    System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
+end
+
+rule "Negative evidence if RT follows opposite order to previous based on lipid type"
+when
+    $a1 : /annotations [
+        $rt1 : rtMin,
+        $carbonCount : lipid.getCarbonCount(),
+        $doubleBondCount : lipid.getDoubleBondsCount(),
+        $lipidType1 : lipid.getLipidType()
+    ]
+    $a2 : /annotations [
+    this != $a1,
+         lipid.getCarbonCount() == $carbonCount,
+         lipid.getDoubleBondsCount() == $doubleBondCount,
+         lipid.getLipidType() != $lipidType1,
+         rtMin < $rt1
+     ]
+then
+    $a1.addScore(-1.0d);  // Double
+    $a2.addScore(-1.0d);  // Double
+    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
+end
+

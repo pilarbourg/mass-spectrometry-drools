@@ -1,5 +1,7 @@
 package lipid;
 
+import java.util.Objects;
+
 public class Peak  implements Comparable<Peak> {
 
     private final double mz;
@@ -24,15 +26,14 @@ public class Peak  implements Comparable<Peak> {
     }
 
     @Override
-    public int hashCode() {
-        return Double.hashCode(mz) * 31;
+    public boolean equals(Object o) {
+        if (!(o instanceof Peak peak)) return false;
+        return Double.compare(mz, peak.mz) == 0 && Double.compare(intensity, peak.intensity) == 0;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Peak other)) return false;
-        return Double.compare(mz, other.mz) == 0;
+    public int hashCode() {
+        return Objects.hash(mz, intensity);
     }
 
     // Implementing Comparable
