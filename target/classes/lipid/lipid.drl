@@ -7,8 +7,40 @@ unit LipidScoreUnit;
 // This is one example of rules that only prints the factorial combination of all pairs eliminating the A-A combination.
 rule "Score 1 for lipid pair with increasing RT and carbon count"
 when
-    $a1 : /annotations [$rt1 : rtMin, $carbonCount1 : lipid.getCarbonCount(), $doubleBondCount : lipid.getDoubleBondsCount(), $lipidType : lipid.getLipidType()]
-    $a2 : /annotations [this != $a1, lipid.getDoubleBondsCount() == $doubleBondCount, lipid.getLipidType() == $lipidType, rtMin > $rt1, lipid.getCarbonCount() > $carbonCount1]
+    $a1 : /annotations [
+        $rt1 : rtMin,
+        $carbonCount1 : lipid.getCarbonCount(),
+        $doubleBondCount : lipid.getDoubleBondsCount(),
+        $lipidType : lipid.getLipidType()
+    ]
+    $a2 : /annotations [
+        this != $a1,
+        lipid.getDoubleBondsCount() == $doubleBondCount,
+        lipid.getLipidType() == $lipidType,
+        rtMin > $rt1,
+        lipid.getCarbonCount() > $carbonCount1
+    ]
+then
+    $a1.addScore(1.0d);  // Double
+    $a2.addScore(1.0d);  // Double
+    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
+end
+
+rule "Score 1 for lipid pair with increasing RT and double bonds"
+when
+    $a1 : /annotations [
+        $rt1 : rtMin,
+        $carbonCount1 : lipid.getCarbonCount(),
+        $doubleBondCount : lipid.getDoubleBondsCount(),
+        $lipidType : lipid.getLipidType()
+    ]
+    $a2 : /annotations [
+        this != $a1,
+        lipid.getDoubleBondsCount() < $doubleBondCount,
+        lipid.getLipidType() == $lipidType,
+        rtMin > $rt1,
+        lipid.getCarbonCount() == $carbonCount1
+    ]
 then
     $a1.addScore(1.0d);  // Double
     $a2.addScore(1.0d);  // Double
@@ -17,8 +49,19 @@ end
 
 rule "Negative evidence if RT follows opposite order to previous based on lipid type"
 when
-    $a1 : /annotations [$rt1 : rtMin, $carbonCount1 : lipid.getCarbonCount(), $doubleBondCount : lipid.getDoubleBondsCount(), $lipidType : lipid.getLipidType()]
-    $a2 : /annotations [this != $a1, lipid.getDoubleBondsCount() == $doubleBondCount, lipid.getLipidType() == $lipidType, rtMin > $rt1, lipid.getCarbonCount() < $carbonCount1]
+    $a1 : /annotations [
+        $rt1 : rtMin,
+        $carbonCount1 : lipid.getCarbonCount(),
+        $doubleBondCount : lipid.getDoubleBondsCount(),
+        $lipidType : lipid.getLipidType()
+    ]
+    $a2 : /annotations [
+    this != $a1,
+         lipid.getDoubleBondsCount() == $doubleBondCount,
+         lipid.getLipidType() == $lipidType,
+         rtMin < $rt1,
+         lipid.getCarbonCount() > $carbonCount1
+     ]
 then
     $a1.addScore(-1.0d);  // Double
     $a2.addScore(-1.0d);  // Double
@@ -31,19 +74,17 @@ when
         $rt1 : rtMin,
         $carbonCount1 : lipid.getCarbonCount(),
         $doubleBondCount : lipid.getDoubleBondsCount(),
-        $lipidType : lipid.getLipidType(),
-        $compoundId1 : lipid.getCompoundId()
+        $lipidType : lipid.getLipidType()
     ]
     $a2 : /annotations [
         this != $a1,
         lipid.getLipidType() == $lipidType,
         lipid.getCarbonCount() == $carbonCount1,
         rtMin > $rt1,
-        lipid.getDoubleBondsCount() > $doubleBondCount,
-        lipid.getCompoundId() > $compoundId1
+        lipid.getDoubleBondsCount() < $doubleBondCount
     ]
 then
     $a1.addScore(-1.0d);
-    $a2.addScore(-1.0d);
+    $a2.addScore(-1.0d);  // Double
     System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
 end

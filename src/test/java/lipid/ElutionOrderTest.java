@@ -212,8 +212,6 @@ public class ElutionOrderTest {
 
         RuleUnitInstance<LipidScoreUnit> instance = RuleUnitProvider.get().createRuleUnitInstance(lipidScoreUnit);
 
-        // TODO CHECK THE Monoisotopic MASSES OF THE COMPOUNDS IN https://chemcalc.org/
-
         Lipid lipid1 = new Lipid(1, "TG 54:3", "C57H104O6", "TG", 54, 3); // MZ of [M+H]+ = 885.79057
         Lipid lipid2 = new Lipid(2, "TG 54:4", "C57H102O6", "TG", 54, 4); // MZ of [M+H]+ = 883.77492
         Lipid lipid3 = new Lipid(3, "TG 54:2", "C57H106O6", "TG", 54, 2); // MZ of [M+H]+ = 887.80622
@@ -231,11 +229,9 @@ public class ElutionOrderTest {
             LOG.info("Run query. Rules are also fired");
             instance.fire();
 
-            // Here the logic that we expect. In this case we expect the full 3 annotations to have a positive score of 1
-
-            assertEquals(0d, annotation1.getNormalizedScore(), 0.01); // !! TODO the scores should be between -1 and 1. It is done, but check it out for yourself
-            assertEquals(0d, annotation2.getNormalizedScore(), 0.01); // !! TODO the scores should be between -1 and 1. It is done, but check it out for yourself
-            assertEquals(-1.0, annotation3.getNormalizedScore(), 0.01); // !! !! TODO the scores should be between -1 and 1. It is done, but check it out for yourself
+            assertEquals(0d, annotation1.getNormalizedScore(), 0.01);
+            assertEquals(0d, annotation2.getNormalizedScore(), 0.01);
+            assertEquals(-1.0, annotation3.getNormalizedScore(), 0.01);
 
         }
         finally {
