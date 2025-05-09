@@ -1,6 +1,7 @@
 package lipid;
 
 import adduct.Adduct;
+import adduct.MassTransformation;
 import org.junit.Before;
 import org.junit.Test;
 

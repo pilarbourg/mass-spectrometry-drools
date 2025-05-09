@@ -1,6 +1,7 @@
 package lipid;
 
 import adduct.Adduct;
+import adduct.MassTransformation;
 
 
 import java.util.*;

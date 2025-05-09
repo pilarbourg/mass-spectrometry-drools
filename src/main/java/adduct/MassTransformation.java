@@ -1,6 +1,6 @@
-package lipid;
+package adduct;
 
-import adduct.Adduct;
+import lipid.IonizationMode;
 
 import java.util.Map;
 
