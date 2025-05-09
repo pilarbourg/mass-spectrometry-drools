@@ -61,7 +61,8 @@ when
         lipid.getDoubleBondsCount() == $doubleBondCount,
         lipid.getLipidType() != $lipidType1,
         //apply priority
-        rtMin > $rt1
+        rtMin > $rt1,
+        eval(LipidTypePriorityOrder.isMoreRetained(lipid.getLipidType(), $lipidType1))
     ]
 then
     $a1.addScore(1.0d);  // Double
@@ -124,8 +125,9 @@ when
     this != $a1,
          lipid.getCarbonCount() == $carbonCount,
          lipid.getDoubleBondsCount() == $doubleBondCount,
-         LipidTypePriorityOrder.isMoreRetained($lipidType1, lipid.getLipidType()),
-         rtMin < $rt1
+         lipid.getLipidType() != $lipidType1,
+         rtMin < $rt1,
+         eval(LipidTypePriorityOrder.isMoreRetained(lipid.getLipidType(), $lipidType1))
      ]
 then
     $a1.addScore(-1.0d);  // Double
