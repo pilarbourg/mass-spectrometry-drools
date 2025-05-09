@@ -23,7 +23,6 @@ when
 then
     $a1.addScore(1.0d);  // Double
     $a2.addScore(1.0d);  // Double
-    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
 rule "Score 1 for lipid pair with increasing RT and double bonds"
@@ -44,7 +43,6 @@ when
 then
     $a1.addScore(1.0d);  // Double
     $a2.addScore(1.0d);  // Double
-    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
 rule "Score 1 for lipid pair with increasing RT and lipid type"
@@ -67,7 +65,6 @@ when
 then
     $a1.addScore(1.0d);  // Double
     $a2.addScore(1.0d);  // Double
-    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
 
@@ -89,7 +86,6 @@ when
 then
     $a1.addScore(-1.0d);
     $a2.addScore(-1.0d);  // Double
-    System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
 end
 
 rule "Negative evidence if RT follows opposite order to previous based on RT and double bonds"
@@ -110,7 +106,6 @@ when
 then
     $a1.addScore(-1.0d);
     $a2.addScore(-1.0d);  // Double
-    System.out.println("Scored -1 for annotations: " + $a1 + " and " + $a2);
 end
 
 rule "Negative evidence if RT follows opposite order to previous based on lipid type"
@@ -132,6 +127,5 @@ when
 then
     $a1.addScore(-1.0d);  // Double
     $a2.addScore(-1.0d);  // Double
-    System.out.println("Scored 1 for annotations: " + $a1 + " and " + $a2);
 end
 
