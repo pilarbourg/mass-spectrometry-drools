@@ -80,4 +80,21 @@ public class AdductDetectionTest {
         assertEquals( "Adduct inferred from lowest mz in group","[M+H]+",  annotation.detectAdduct(IonizationMode.POSITIVE));
     }
 
+    @Test
+    public void shouldDetectDimerizationAndBaseMonomer() {
+        // Monómero [M+H]+ 700.500
+
+        Peak monomer = new Peak(700.500, 100000.0);
+        // Dímero [2M+H]+ 1400.993 (2*699.492724)-(-1.007276)=1399.993
+        Peak dimer = new Peak(1399.993, 50000.0);
+
+        Lipid lipid = new Lipid(5, "PC 34:2", "C42H80NO8P", "TG", 34, 2);
+
+        Annotation annotation = new Annotation(lipid, monomer.getMz(), monomer.getIntensity(), 7.2, IonizationMode.POSITIVE, Set.of(monomer, dimer));
+
+        // Verificamos que se detecta correctamente como [M+H]+ (el más pequeño)
+        assertNotNull("Debe detectar el aducto principal", annotation.detectAdduct(IonizationMode.POSITIVE));
+        assertEquals("Debe ser [M+H]+ como base", "[M+H]+", annotation.detectAdduct(IonizationMode.POSITIVE));
+    }
+
 }

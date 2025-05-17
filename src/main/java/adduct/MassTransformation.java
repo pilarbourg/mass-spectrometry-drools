@@ -42,17 +42,16 @@ public class MassTransformation {
 
     private static Double getMonoMassFromMultimerMZ(double experimentalMass, double adductValue, int charge, int numberAtoms) {
         double result = experimentalMass;
+        result = result * charge;
         result += adductValue;
         result /= numberAtoms;
-        result = result + charge;
         return result;
     }
 
     private static Double getMonoMassFromMultiChargedMZ(double experimentalMass, double adductValue, int charge) {
         double result = experimentalMass;
-        result -= adductValue;
         result *= charge;
-        result = result + charge;
+        result -= adductValue;
         return result;
     }
 
